@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackGigs - Your AI Job Application Tracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <style>
+
+        /* General Body Styling */
+        body {
+            background-color: #f4f4f9; /* Light background for contrast */
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Modern Gradient Header */
+        .header {
+            background: linear-gradient(to right, #4A90E2, #145DA0);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+            /*display: flex;*/
+            /*align-items: center;*/
+            /*justify-content: center;*/
+            gap: 10px;
+        }
+
+        .header img {
+            height: 50px; /* Adjust logo size */
+        }
+
+        /* Card Styling */
+        .card {
+            border-radius: 12px;
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        /* Upload Buttons */
+        .upload-btn {
+            width: 100%;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+
+        /* Stylish Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #28a745;  /* Green header for table */
+            color: white;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        /* Filter Dropdowns in Single Row */
+        .filter-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;  /* Ensures space between dropdowns */
+            flex-wrap: wrap;
+        }
+
+        .filter-container select {
+            flex: 1 1 30%;  /* Ensures equal width and responsiveness */
+            min-width: 150px;  /* Prevents the dropdown from shrinking too much */
+        }
+
+        .filter-container button {
+            flex: 1 1 20%;  /* Gives a reasonable width for the Apply Filters button */
+            min-width: 100px;
+        }
+
+        /* Missing Skills & Recommendations */
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 5px solid #007bff;
+        }
+
+        /* Hover Effects */
+        .btn:hover {
+            transform: scale(1.05);
+            transition: 0.3s;
+        }
+
+
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Header -->
+    <div class="container mt-4">
+        <div class="header">
+<!--            <img src="/static/images/logo.png" alt="Logo">-->
+            <h1>TrackGigs</h1>
+            <p>Your Smart AI Job Application Tracker</p>
+            {% if not access_token %}
+            <!-- Login Button - Only visible if the user is not logged in -->
+            <a href="http://localhost:8000/login" class="btn btn-primary">Login with Google</a>
+            {% else %}
+
+                <!-- Filters -->
+<!--            </div>-->
+
+            <div class="card mt-4 p-3">
+                <h4>📌 Filter Job Applications</h4>
+                <form method="POST">
+                <div class="row d-flex align-items-center">
+                    <div class="col-md-4">
+                        <select id="companyFilter" class="form-control">
+                            <option value="">Select Company</option>
+                            {% for company in companies %}
+                            <option value="{{ company }}">{{ company }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="roleFilter" class="form-control">
+                            <option value="">Select Role</option>
+                            {% for role in role_titles %}
+                            <option value="{{ role }}" class="form-control upload-btn">{{ role }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="statusFilter" class="form-control">
+                            <option value="">Select Status</option>
+                            {% for status in statuses %}
+                            <option value="{{ status }}" class="form-control upload-btn">{{ status }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                    <div class="text-center mt-3">
+                <button type="submit" class="btn btn-primary px-4">🔍 Filter</button>
+                    </div>
+                </form>
+            </div>
+
+
+
+            <!-- Job Applications Table -->
+            <div class="card mt-4 table-container">
+                <h5>📌 Your Job Applications</h5>
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>User ID</th>
+                            <th>Company</th>
+                            <th>Role Title</th>
+                            <th>Status</th>
+                            <th>Applied Date</th>
+                            <th>Last Update Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in df.iterrows() %}
+                        <tr>
+                            <td>{{ row['user_id'] }}</td>
+                            <td>{{ row['company'] }}</td>
+                            <td>{{ row['position'] }}</td>
+                            <td>{{ row['status'] }}</td>
+                            <td>{{ row['applied_date'] }}</td>
+                            <td>{{ row['last_update'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="card mt-4">
+                <h5 class="mb-3 text-center">📂 Upload Your Resume & Job Description</h5>
+                <form method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="file" name="resume" class="form-control upload-btn">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="file" name="job_description" class="form-control upload-btn">
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-primary px-4">🔍 Analyze</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Missing Skills & Recommendations -->
+            {% if missing_skills %}
+            <div class="card mt-4">
+                <h5 class="text-danger">🚨 Missing Skills</h5>
+                <div class="info-card">
+                    <p><b>🔹 {{ missing_skills }}</b></p>
+                </div>
+            <div class="card mt-4">
+                <h5 class="text-danger">🚨 Profile Match Score</h5>
+                <div class="info-card">
+                    <p><b>🔹 {{ matching_score }}</b></p>
+                </div>
+                <h5 class="text-primary mt-3">📚 Recommended Learnings</h5>
+                <div class="card mt-4 p-3">
+                    <h4>Generated Insights</h4>
+                    {% if learning_suggestions %}
+                        <ul>
+                            {% for point in learning_suggestions %}
+                                {% if point.strip() %}
+                                    <li>{{ point }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No insights generated yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            </div>
+        </div>
+                {% endif %}
+            </div>
+
+    <!-- Bootstrap JS (Optional) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    </body>
+    </html>
